@@ -36,12 +36,7 @@ def handle_message(event):
     # เงื่อนไข: ต้องเป็นคุณส่งมาจากแชทส่วนตัว (Private Chat) เท่านั้น
     if event.source.type == 'user' and event.source.user_id == YOUR_USER_ID:
         if user_message.startswith("Cancel") or user_message.startswith("Announcement"):
-            formatted_message = (
-                f"🚨 **[แจ้งเตือนตารางเรียน & ยกเลิกคลาส]** 🚨\n\n"
-                f"{user_message}\n\n"
-                f"---------------------------\n"
-                f"📌 หลักสูตร DDCT KMUTT"
-            )
+            formatted_message = (  f"{user_message}\n\n"   )
             
             try:
                 # ส่งข้อความตรงเข้ากลุ่มสตาฟ
