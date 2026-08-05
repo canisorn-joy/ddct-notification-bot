@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -29,11 +30,27 @@ async def callback(request: Request):
 def handle_message(event):
     user_message = event.message.text
     
-    # ถ้ามีใครก็ตามพิมพ์มาทาง "แชทส่วนตัว (User)" หาบอท
+    # ถ้ามีใครก็ตามพิมพ์มาทางแชทส่วนตัว (User) หาบอท
     if event.source.type == 'user':
         try:
-            # 1. ส่งข้อความนั้นเข้าไปโผล่ในกลุ่มสตาฟอัตโนมัติ
-            line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=f"📢 มีประกาศใหม่:\n\n{user_message}"))
+            # ดึงวันที่ปัจจุบัน (แปลง ค.ศ. เป็น พ.ศ. โดยบวก 543)
+            now = datetime.now()
+            thai_months = [
+                "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", 
+                "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", 
+                "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+            ]
+            day = now.day
+            month = thai_months[now.month]
+            year = now.year + 543
+            
+            current_date_str = f"{day} {month} {year}"
+            
+            # จัดรูปแบบข้อความตามที่ต้องการ
+            announcement_text = f"ประกาศ วันที่ {current_date_str}:\n\n{user_message}"
+            
+            # 1. ส่งข้อความเข้าไปโผล่ในกลุ่มสตาฟอัตโนมัติ
+            line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=announcement_text))
             
             # 2. ตอบกลับคนส่งในแชทส่วนตัวว่าส่งสำเร็จแล้ว
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ ส่งประกาศเข้ากลุ่มสตาฟเรียบร้อยครับ!"))
