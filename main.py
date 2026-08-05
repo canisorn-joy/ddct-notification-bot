@@ -6,7 +6,6 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = FastAPI()
 
-# Token และ Secret ของคุณ
 LINE_CHANNEL_ACCESS_TOKEN = "zJHZpF/yAMkU3IiKHYrDqnfimAA08ZqZwQLrZaoYb3DLY6Ib9Ew4W8QJv5fQo15NOtQq2PGwDIwk//eHQycD24zR+XUcCK1GP6oaUo/i22X0KGukIxEdVOcn8id3KIwcr0EjeNCrvIjhNjhNclAoWQdB04t89/1O/w1cDnyilFU="
 LINE_CHANNEL_SECRET = "14bad5ee7aeaea580aa461a878fc364a"
 
@@ -30,10 +29,13 @@ async def callback(request: Request):
 def handle_message(event):
     user_message = event.message.text
     
-    # ถ้าข้อความส่งมาจากกลุ่มสตาฟที่กำหนด
-    if event.source.type == 'group' and event.source.group_id == STAFF_GROUP_ID:
+    # ถ้ามีใครก็ตามพิมพ์มาทาง "แชทส่วนตัว (User)" หาบอท
+    if event.source.type == 'user':
         try:
-            # ใช้ reply_message ตอบกลับข้อความนั้นทันที (ใครพิมพ์ บอทก็ตอบกลับเข้ากลุ่มได้ทั้งหมด)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=user_message))
+            # 1. ส่งข้อความนั้นเข้าไปโผล่ในกลุ่มสตาฟอัตโนมัติ
+            line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=f"📢 มีประกาศใหม่:\n\n{user_message}"))
+            
+            # 2. ตอบกลับคนส่งในแชทส่วนตัวว่าส่งสำเร็จแล้ว
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ ส่งประกาศเข้ากลุ่มสตาฟเรียบร้อยครับ!"))
         except Exception as e:
-            print(f"Error: {str(e)}")
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"❌ เกิดข้อผิดพลาด: {str(e)}"))
