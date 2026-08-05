@@ -30,9 +30,10 @@ async def callback(request: Request):
 def handle_message(event):
     user_message = event.message.text
     
-    # ถ้าข้อความส่งมาจากกลุ่มสตาฟที่กำหนด ส่งข้อความนั้นซ้ำออกไปทันทีโดยไม่มีเงื่อนไข
+    # ถ้าข้อความส่งมาจากกลุ่มสตาฟที่กำหนด
     if event.source.type == 'group' and event.source.group_id == STAFF_GROUP_ID:
         try:
-            line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=user_message))
+            # ใช้ reply_message ตอบกลับข้อความนั้นทันที (ใครพิมพ์ บอทก็ตอบกลับเข้ากลุ่มได้ทั้งหมด)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=user_message))
         except Exception as e:
             print(f"Error: {str(e)}")
