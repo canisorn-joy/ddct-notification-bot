@@ -35,10 +35,10 @@ def handle_message(event):
         try:
             # ดึงวันที่ปัจจุบันในรูปแบบภาษาอังกฤษ (เช่น August 5, 2026)
             now = datetime.now()
-            current_date_str = now.strftime("%B %d, %Y")
+            current_date_str = now.strftime("%d %B %Y")
             
             # จัดรูปแบบข้อความประกาศ
-            announcement_text = f"Announcement, {current_date_str}:\n\n{user_message}"
+            announcement_text = f"Announcement ({current_date_str}) \n\n{user_message}"
             
             # ส่งเข้ากลุ่มสตาฟ
             if STAFF_GROUP_ID:
