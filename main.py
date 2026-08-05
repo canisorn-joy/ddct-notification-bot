@@ -30,29 +30,22 @@ async def callback(request: Request):
 def handle_message(event):
     user_message = event.message.text
     
-    # ถ้ามีใครก็ตามพิมพ์มาทางแชทส่วนตัว (User) หาบอท
+    # ถ้าพิมพ์มาทางแชทส่วนตัว (User) หาบอท
     if event.source.type == 'user':
         try:
-            # ดึงวันที่ปัจจุบัน (แปลง ค.ศ. เป็น พ.ศ. โดยบวก 543)
+            # ดึงวันที่ปัจจุบันในรูปแบบภาษาอังกฤษ (เช่น August 5, 2026)
             now = datetime.now()
-            thai_months = [
-                "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", 
-                "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", 
-                "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
-            ]
-            day = now.day
-            month = thai_months[now.month]
-            year = now.year + 543
+            current_date_str = now.strftime("%B %d, %Y")
             
-            current_date_str = f"{day} {month} {year}"
+            # จัดรูปแบบข้อความประกาศ
+            announcement_text = f"Announcement, {current_date_str}:\n\n{user_message}"
             
-            # จัดรูปแบบข้อความตามที่ต้องการ
-            announcement_text = f"ประกาศ วันที่ {current_date_str}:\n\n{user_message}"
+            # ส่งเข้ากลุ่มสตาฟ
+            if STAFF_GROUP_ID:
+                line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=announcement_text))
             
-            # 1. ส่งข้อความเข้าไปโผล่ในกลุ่มสตาฟอัตโนมัติ
-            line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=announcement_text))
-            
-            # 2. ตอบกลับคนส่งในแชทส่วนตัวว่าส่งสำเร็จแล้ว
+            # ตอบกลับคนส่งในแชทส่วนตัว
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ ส่งประกาศเข้ากลุ่มสตาฟเรียบร้อยครับ!"))
+            
         except Exception as e:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"❌ เกิดข้อผิดพลาด: {str(e)}"))
