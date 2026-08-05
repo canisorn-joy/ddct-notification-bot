@@ -13,7 +13,7 @@ LINE_CHANNEL_SECRET = "14bad5ee7aeaea580aa461a878fc364a"
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
-# ➡️ Group ID ของกลุ่มสตาฟที่คุณระบุ
+# Group ID ของกลุ่มสตาฟ
 STAFF_GROUP_ID = "Cd77115351ec001e12873a5df8fc30ed6"
 
 @app.post("/callback")
@@ -30,11 +30,9 @@ async def callback(request: Request):
 def handle_message(event):
     user_message = event.message.text
     
-    # เงื่อนไข: ถ้าข้อความถูกส่งมาจากกลุ่มสตาฟที่กำหนด
+    # ถ้าข้อความส่งมาจากกลุ่มสตาฟที่กำหนด ส่งข้อความนั้นซ้ำออกไปทันทีโดยไม่มีเงื่อนไข
     if event.source.type == 'group' and event.source.group_id == STAFF_GROUP_ID:
-        if user_message.startswith("Cancel") or user_message.startswith("Announcement"):
-            try:
-                # ส่งข้อความตามที่คุณพิมพ์มาเป๊ะๆ ออกไปในกลุ่ม
-                line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=user_message))
-            except Exception as e:
-                print(f"Error: {str(e)}")
+        try:
+            line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=user_message))
+        except Exception as e:
+            print(f"Error: {str(e)}")
