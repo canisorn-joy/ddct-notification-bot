@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -13,9 +12,6 @@ LINE_CHANNEL_SECRET = "14bad5ee7aeaea580aa461a878fc364a"
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
-# Group ID ของกลุ่มสตาฟ
-STAFF_GROUP_ID = "Cd77115351ec001e12873a5df8fc30ed6"
-
 @app.post("/callback")
 async def callback(request: Request):
     signature = request.headers.get("X-Line-Signature", "")
@@ -28,24 +24,25 @@ async def callback(request: Request):
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    user_message = event.message.text
+    source_type = event.source.type
     
-    # ถ้าพิมพ์มาทางแชทส่วนตัว (User) หาบอท
-    if event.source.type == 'user':
+    # ถ้าข้อความถูกส่งมาจากกลุ่มหรือ OpenChat
+    if source_type in ['group', 'room']:
+        target_id = event.source.group_id if source_type == 'group' else event.source.room_id
+        user_id = event.source.user_id
+        
         try:
-            # ดึงวันที่ปัจจุบันในรูปแบบภาษาอังกฤษ (เช่น August 5, 2026)
-            now = datetime.now()
-            current_date_str = now.strftime("%d %B %Y")
+            # 1. ส่ง Group ID ไปบอกคุณทาง "แชทส่วนตัว" ทันที
+            line_bot_api.push_message(
+                user_id, 
+                TextSendMessage(text=f"🎯 Group ID ของกลุ่มนี้คือ:\n{target_id}")
+            )
             
-            # จัดรูปแบบข้อความประกาศ
-            announcement_text = f"Announcement ({current_date_str}) \n\n{user_message}"
-            
-            # ส่งเข้ากลุ่มสตาฟ
-            if STAFF_GROUP_ID:
-                line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=announcement_text))
-            
-            # ตอบกลับคนส่งในแชทส่วนตัว
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ ส่งประกาศเข้ากลุ่มเรียบร้อย"))
-            
+            # 2. สั่งให้บอทออกจากกลุ่มทันทีแบบไร้ร่องรอย
+            if source_type == 'group':
+                line_bot_api.leave_group(target_id)
+            else:
+                line_bot_api.leave_room(target_id)
+                
         except Exception as e:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"❌ เกิดข้อผิดพลาด: {str(e)}"))
+            print(f"Error: {str(e)}")
