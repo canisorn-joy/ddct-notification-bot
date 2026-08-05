@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Request, HTTPException
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = FastAPI()
 
@@ -23,10 +23,13 @@ async def callback(request: Request):
         raise HTTPException(status_code=400, detail="Invalid signature.")
     return "OK"
 
-@handler.add(MessageEvent, message=TextSendMessage)
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    # ส่งคำว่า "สวัสดีครับ" กลับไปทุกครั้งที่มีคนส่งข้อความมา
+    # ดึง User ID ออกมาแสดง พร้อมทักทายกลับทันที
+    user_id = event.source.user_id
+    reply_text = f"สวัสดีครับ! บอทได้รับข้อความแล้ว\nYour User ID is:\n{user_id}"
+    
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text="สวัสดีครับ บอททำงานปกติแล้ว!")
+        TextSendMessage(text=reply_text)
     )
