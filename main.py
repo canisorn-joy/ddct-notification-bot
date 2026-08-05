@@ -45,7 +45,7 @@ def handle_message(event):
                 line_bot_api.push_message(STAFF_GROUP_ID, TextSendMessage(text=announcement_text))
             
             # ตอบกลับคนส่งในแชทส่วนตัว
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ ส่งประกาศเข้ากลุ่มสตาฟเรียบร้อยครับ!"))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ ส่งประกาศเข้ากลุ่มเรียบร้อย"))
             
         except Exception as e:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"❌ เกิดข้อผิดพลาด: {str(e)}"))
